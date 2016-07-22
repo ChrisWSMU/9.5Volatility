@@ -1,0 +1,119 @@
+---
+title: "9.5 Volatility HON"
+author: "Chris Woodard"
+output: html_document:
+  keep_md: yes
+---
+
+## Exploratory Analysis of time Series - Stock HON  - Honeywell International, Inc. 
+
+#### Assignment
+1.  Download the data for HON.
+2.  Calculate the log returns.
+3.  Calculate the volatility measure.
+4.  Calculate volatility over entire length of series for various three different decay factors.
+5.  Plot the results, overlaying the volatility curves on the data.
+
+## Financial Series:  HON-Honeywell International
+
+####Honeywell International, Inc. is an American multinational conglomerate company that produces a variety of commercial and consumer products, engineering services and aerospace systems for a wide variety of customers, from private consumers to major corporations and governments. The company operates three business units, known as a Strategic Business Units – Honeywell Aerospace, Honeywell Automation and Control Solutions, and Honeywell Performance Materials and Technologies
+
+###We will use exploratory data analysis to analyze volatility in Honeywell's stock over time.  We will graph the volatility.
+
+
+####Libraries needed for financial analysis
+```{r}
+require(tseries)
+```
+
+####Load S&P information
+```{r}
+SNPdata <- get.hist.quote('^gspc',quote="Close")
+```
+
+####Log Returns for the past year (~250 trading days per year)
+```{r}
+SNPret <- log(lag(SNPdata)) - log(SNPdata)
+SNPvol <- sd(SNPret) * sqrt(250) * 100
+```
+
+####Volatility Measure
+```{r}
+Vol <- function(d, logrets){
+  var = 0
+  lam = 0
+  varlist <- c()
+  for (r in logrets) {
+    lam = lam*(1 - 1/d) + 1
+    var = (1 - 1/lam)*var + (1/lam)*r^2
+    varlist <- c(varlist, var)
+    }
+    sqrt(varlist)
+}
+```
+
+Volatility is the degree of variation of a trading price over time.  This is an estimation on the volatility high peakss of the S&P 500.  Here we will look at volatility in a continuous lookback window with decays of 10, 30 and 100.
+
+```{r}
+volest <- Vol(10,SNPret)
+volest2 <- Vol(30,SNPret)
+volest3 <- Vol(100,SNPret)
+```
+
+
+####Plot S&P 500 with decay factors 10, 30, and 100 days
+
+```{r}
+plot(volest,type="l", main="S&P 500 Volatility", xlab="Time", ylab="Volatility")
+lines(volest2,type="l",col="red")
+lines(volest3, type = "l", col="red")
+```
+
+###Honeywell International stock data
+```
+
+```{r}
+HONdata<- get.hist.quote('hon' , quote="Close")
+```
+
+####Log Returns for past year
+```{r}
+HONret <- log(lag(HONdata)) - log(HONdata)
+HONvol <- sd(HONret) * sqrt(250) * 100
+```
+
+####Estimate of overall HON volatility:
+```{r echo=TRUE}
+HONvol
+```
+
+
+Volatility measure (time series with continuous lookback window)
+```{r}
+Vol<-function(d, logrets) {
+var = 0
+lam = 0
+varlist <- c()
+for (r in logrets){
+lam=lam*(1-1/d) + 1
+var = (1-1/lam) * var + (1/lam) * r^2
+varlist<- c(varlist, var)
+}
+sqrt(varlist)}
+```
+
+Volatility for HON estimated high peaks with d=10, 30, 100 days.
+
+```{r}
+Hvolest10<-Vol(10, HONret)
+Hvolest30<-Vol(30, HONret)
+Hvolest100<-Vol(100, HONret)
+```
+
+####Plot HON to show all of the decay factors
+
+```{r}
+plot(Hvolest10,type="l", main="HON Volatility", xlab="Time", ylab="Volatility")
+lines(Hvolest30,type="l",col="red")
+lines(Hvolest100, type = "l", col="red")
+```
